@@ -1,0 +1,6 @@
+[Misc]
+Name=Win9x Plus
+Comment=MS Windows 9X style with fixes for Plasma 6
+
+[KDE]
+WidgetStyle=win9xplus
