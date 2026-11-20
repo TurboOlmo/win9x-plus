@@ -27,4 +27,7 @@ if(BUILD_TESTING)
 
     add_executable(submenutest tests/submenutest.cpp)
     target_link_libraries(submenutest PRIVATE Qt6::Widgets)
+
+    add_executable(pathbartest tests/pathbartest.cpp)
+    target_link_libraries(pathbartest PRIVATE Qt6::Widgets)
 endif()

@@ -11,6 +11,7 @@ Apps look exactly as they do with the built-in style, except for these fixes:
 | The desktop's right-click menu (and other see-through Plasma menus) has a 1px gap between the 3D border and the gray background, so you can see through it. | The gap is filled with the menu's gray. |
 | Submenus (e.g. Dolphin's right-click → **Create New**) open on top of the parent menu's 3D border. | Submenus open right against the parent menu's outer edge, on both Wayland and X11. |
 | On Wayland, submenus also open a few pixels too low, so their first item doesn't line up with the item you hovered. | The first item lines up with the hovered item, as in Windows 9x. |
+| In Dolphin's path bar, hovering a folder name draws a gray box that covers the bar's sunken 3D border. | The hover box stays inside the border. |
 
 ## Requirements
 
@@ -58,15 +59,16 @@ non-antialiased font. Those are set separately in System Settings.
 
 ## Tests
 
-The `tests/` folder has two small offscreen checks: `gaptest` (no see-through pixels in a
-translucent menu) and `submenutest` (submenus don't overlap their parent). Run them from the
-build folder:
+The `tests/` folder has three small offscreen checks: `gaptest` (no see-through pixels in a
+translucent menu), `submenutest` (submenus don't overlap their parent) and `pathbartest`
+(hovering in Dolphin's path bar doesn't cover its border). Run them from the build folder:
 
 ```bash
 mkdir -p build/plugins/styles && cp build/libwin9xplus.so build/plugins/styles/
 cd build
 QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./gaptest win9xplus
 QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./submenutest win9xplus
+QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./pathbartest win9xplus
 ```
 
 They don't cover Wayland, so submenu placement on Wayland has to be checked on a real desktop.

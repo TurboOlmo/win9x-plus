@@ -24,6 +24,18 @@ static bool isComboPopup(const QWidget *widget)
     return widget && widget->inherits("QComboBoxPrivateContainer");
 }
 
+// The Dolphin/KDE path bar (KUrlNavigator) that contains `widget`, if any.
+static const QWidget *urlNavigatorOf(const QWidget *widget)
+{
+    for (const QWidget *w = widget ? widget->parentWidget() : nullptr; w; w = w->parentWidget()) {
+        if (w->inherits("KUrlNavigator"))
+            return w;
+        if (w->isWindow())
+            break;
+    }
+    return nullptr;
+}
+
 void Win9xPlusStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option,
                                    QPainter *painter, const QWidget *widget) const
 {
@@ -43,6 +55,32 @@ void Win9xPlusStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
     if (element == PE_PanelMenu && !isComboPopup(widget)) {
         painter->fillRect(option->rect, option->palette.brush(QPalette::Button));
         return;
+    }
+
+    // Dolphin's path bar (KIO's KUrlNavigator):
+    //
+    // The bar paints a white field with the 9X sunken 2px border
+    // (PE_PanelLineEdit). The folder buttons inside it are as tall as the
+    // whole bar, border included, and on hover they paint PE_PanelButtonCommand
+    // over their full rectangle. With the Windows style that's a solid gray
+    // box, so it covered the bar's sunken border. Keep the hover box inside
+    // the border instead.
+    // KIO keeps the button class in a namespace, and inherits() needs the
+    // full name; the plain name is checked too in case that ever changes.
+    if (element == PE_PanelButtonCommand && widget
+        && (widget->inherits("KDEPrivate::KUrlNavigatorButtonBase") || widget->inherits("KUrlNavigatorButtonBase"))) {
+        if (const QWidget *bar = urlNavigatorOf(widget)) {
+            const int frame = QProxyStyle::pixelMetric(PM_DefaultFrameWidth, nullptr, bar);
+            const QRect inner = bar->rect().adjusted(frame, frame, -frame, -frame);
+            const QRect innerInButton(widget->mapFrom(bar, inner.topLeft()), inner.size());
+            if (const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                QStyleOptionButton inset(*button);
+                inset.rect = button->rect.intersected(innerInButton);
+                if (!inset.rect.isEmpty())
+                    QProxyStyle::drawPrimitive(element, &inset, painter, widget);
+                return;
+            }
+        }
     }
     QProxyStyle::drawPrimitive(element, option, painter, widget);
 }
