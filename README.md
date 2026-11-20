@@ -59,9 +59,11 @@ non-antialiased font. Those are set separately in System Settings.
 
 ## Tests
 
-The `tests/` folder has three small offscreen checks: `gaptest` (no see-through pixels in a
-translucent menu), `submenutest` (submenus don't overlap their parent) and `pathbartest`
-(hovering in Dolphin's path bar doesn't cover its border). Run them from the build folder:
+The `tests/` folder has four small offscreen checks: `gaptest` (no see-through pixels in a
+translucent menu), `submenutest` (submenus don't overlap their parent), `pathbartest`
+(hovering in Dolphin's path bar doesn't cover its border) and `anchortest` (the submenu fix
+never moves menus that apps place themselves, like system tray menus). Run them from the build
+folder:
 
 ```bash
 mkdir -p build/plugins/styles && cp build/libwin9xplus.so build/plugins/styles/
@@ -69,6 +71,7 @@ cd build
 QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./gaptest win9xplus
 QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./submenutest win9xplus
 QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./pathbartest win9xplus
+QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/plugins ./anchortest win9xplus
 ```
 
 They don't cover Wayland, so submenu placement on Wayland has to be checked on a real desktop.

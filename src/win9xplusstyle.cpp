@@ -161,22 +161,35 @@ bool Win9xPlusStyle::eventFilter(QObject *watched, QEvent *event)
     //  - raised by the submenu's own top border, so its first item lines up
     //    with the hovered item, like Windows 9x and like Qt does on X11.
     // Qt builds that don't support the property simply ignore it.
+    //
+    // Apps can set the same property themselves. Plasma's system tray does:
+    // it sets the anchor to the tray icon, then opens the menu at the
+    // screen's top-left corner and relies on the anchor to move it. So we
+    // only ever touch an anchor we set ourselves (marked with our own
+    // property), and leave any other one alone.
+    static const char anchorProperty[] = "_q_waylandPopupAnchorRect";
+    static const char ownAnchorProperty[] = "_win9xplus_setPopupAnchorRect";
     if (event->type() == QEvent::Show) {
         auto *menu = qobject_cast<QMenu *>(watched);
         QWindow *window = menu ? menu->windowHandle() : nullptr;
         if (window) {
+            const bool ours = window->property(ownAnchorProperty).toBool();
+            const bool setByApp = !ours && window->property(anchorProperty).isValid();
             QMenu *parent = parentMenuOf(menu);
-            if (parent && !menu->actions().isEmpty()) {
+            if (parent && !setByApp && !menu->actions().isEmpty()) {
                 QRect anchor = parent->actionGeometry(menu->menuAction());
                 if (menu->isRightToLeft())
                     anchor.setLeft(0);
                 else
                     anchor.setRight(parent->width() - 1);
                 anchor.translate(0, -menu->actionGeometry(menu->actions().first()).top());
-                window->setProperty("_q_waylandPopupAnchorRect", anchor);
-            } else {
-                // Shown as a normal popup this time: let Qt place it.
-                window->setProperty("_q_waylandPopupAnchorRect", QVariant());
+                window->setProperty(anchorProperty, anchor);
+                window->setProperty(ownAnchorProperty, true);
+            } else if (!parent && ours) {
+                // We placed this menu as a submenu before; now it's opening
+                // on its own, so remove our anchor and let Qt place it.
+                window->setProperty(anchorProperty, QVariant());
+                window->setProperty(ownAnchorProperty, QVariant());
             }
         }
     }

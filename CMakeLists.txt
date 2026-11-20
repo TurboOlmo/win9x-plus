@@ -30,4 +30,7 @@ if(BUILD_TESTING)
 
     add_executable(pathbartest tests/pathbartest.cpp)
     target_link_libraries(pathbartest PRIVATE Qt6::Widgets)
+
+    add_executable(anchortest tests/anchortest.cpp)
+    target_link_libraries(anchortest PRIVATE Qt6::Widgets)
 endif()
